@@ -1,17 +1,24 @@
 export function volume(radius: number, height: number) {
   let radius_sq: number;
-  radius_sq = radius * radius;
+  squareRadius();
   let base_area = Math.PI * radius_sq;
-  if (radius_sq < 0 && height > 0) return null;
+  if (validityCheck(radius_sq, height)) return null;
   return base_area * height;
-}
 
+  function squareRadius() {
+    radius_sq = radius * radius;
+  }
+}
 
 //quick fix
 
-var x: *;
+var x: any;
 var y: number;
 interface quote {
   bar: number;
 }
-var z: quote.bar;
+var z: quote["bar"];
+
+function validityCheck(radius_sq: number, height: number) {
+  return radius_sq < 0 && height > 0;
+}
