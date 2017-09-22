@@ -11,14 +11,20 @@ function loadJSONP(url) {
 }
 
 const quakes = Rx.Observable
-  .create(observer => {
-    window.eqfeed_callback = response => {
-      observer.next(response);
-      observer.complete();
-    };
-    loadJSONP(URL);
+  .interval(5000)
+  .flatMap(() => {
+    return Rx.Observable
+      .create(observer => {
+        window.eqfeed_callback = response => {
+          observer.next(response);
+          observer.complete();
+        };
+        loadJSONP(URL);
+      })
+      .retry(3);
   })
-  .flatMap(data => Rx.Observable.from(data.features));
+  .flatMap(data => Rx.Observable.from(data.features))
+  .distinct(quake => quake.properties.code);
 
 quakes.subscribe(quake => {
   let [lng, lat] = quake.geometry.coordinates;
