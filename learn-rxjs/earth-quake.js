@@ -10,28 +10,17 @@ function loadJSONP(url) {
   head.appendChild(script);
 }
 
-const quakes = Rx.Observable.create(observer => {
-  window.eqfeed_callback = function(response) {
-    let quakes = response.features;
-    quakes.forEach(quake => {
-      observer.next(quake);
-    });
-  };
-  loadJSONP(URL);
-});
+const quakes = Rx.Observable
+  .create(observer => {
+    window.eqfeed_callback = response => {
+      observer.next(response);
+      observer.complete();
+    };
+    loadJSONP(URL);
+  })
+  .flatMap(data => Rx.Observable.from(data.features));
 
-// This specific website doesnt allow to provide our own callback function
-//  so this fetchJsonp will fail. Instead, it will always use a global variable eqfeed_callback
-// const quakes = Rx.Observable.create(observer => {
-//   fetchJsonp(URL, { jsonpCallbackFunction: "eqfeed_callback" })
-//     .then(response => response.json())
-//     .then(data => {
-//       let quakes = data.features;
-//       quakes.forEach(quake => observer.next(quake));
-//     });
-// });
 quakes.subscribe(quake => {
-  console.log("quake", quake);
   let [lng, lat] = quake.geometry.coordinates;
   let size = quake.properties.mag * 10000;
   L.circle([lat, lng], size).addTo(map);
