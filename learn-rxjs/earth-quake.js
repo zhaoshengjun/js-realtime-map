@@ -29,5 +29,17 @@ const quakes = Rx.Observable
 quakes.subscribe(quake => {
   let [lng, lat] = quake.geometry.coordinates;
   let size = quake.properties.mag * 10000;
-  L.circle([lat, lng], size).addTo(map);
+  let circle = L.circle([lat, lng], size).addTo(map);
+  circle.bindPopup(`${quake.properties.title}`);
 });
+
+const setHtml = id => val =>
+  (document.getElementById(id).innerHTML = `Count:${val}`);
+
+const counter = quakes
+  .map(_ => 1)
+  .startWith(0)
+  .scan((acc, cur) => acc + cur)
+  .do(setHtml("count"));
+
+counter.subscribe(d => console.log("count", d));
